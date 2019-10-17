@@ -83,3 +83,6 @@
 # Install v1alpha2 controllers and CRDs
 #
 #export V1ALPHA2_SWITCH=false
+
+# Configure provisioning network for single-stack ipv6
+#PROVISIONING_IPV6=false
