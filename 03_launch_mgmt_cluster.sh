@@ -173,7 +173,11 @@ function launch_cluster_api_bootstrap_provider_kubeadm() {
 clone_repos
 init_minikube
 sudo su -l -c 'minikube start' "${USER}"
-sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
+if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+  sudo su -l -c 'minikube ssh "sudo ip -6 addr add '"${IPV6_ADDR_PREFIX}::2/64"' dev eth2"' "${USER}"
+else
+  sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
+fi
 launch_baremetal_operator
 apply_bm_hosts
 launch_cluster_api_provider_baremetal
