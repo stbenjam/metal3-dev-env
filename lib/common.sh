@@ -36,6 +36,11 @@ ROOT_DISK_NAME=${ROOT_DISK_NAME-"/dev/sda"}
 #Container runtime
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 
+# Enables single-stack IPv6
+PROVISIONING_IPV6=${PROVISIONING_IPV6:-false}
+IPV6_ADDR_PREFIX=${IPV6_ADDR_PREFIX:-"fd2e:6f44:5dd8:b856"}
+
+
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   export POD_NAME="--pod ironic-pod"
 else

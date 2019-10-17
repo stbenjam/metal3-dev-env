@@ -59,7 +59,11 @@ else
       # dnsmasq being run, we don't want that as we have our own dnsmasq, so set
       # the IP address here
       if [ ! -e /etc/sysconfig/network-scripts/ifcfg-provisioning ] ; then
+        if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+          echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nIPV6_AUTOCONF=no\nIPV6INIT=yes\nIPV6ADDR=${IPV6_ADDR_PREFIX}::1/64" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
+	else
           echo -e "DEVICE=provisioning\nTYPE=Bridge\nONBOOT=yes\nNM_CONTROLLED=no\nBOOTPROTO=static\nIPADDR=172.22.0.1\nNETMASK=255.255.255.0" | sudo dd of=/etc/sysconfig/network-scripts/ifcfg-provisioning
+	fi
       fi
       sudo ifdown provisioning || true
       sudo ifup provisioning
