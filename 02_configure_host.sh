@@ -16,7 +16,7 @@ sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ipa-downloader
      -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" /usr/local/bin/get-resource.sh
 
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd ${POD_NAME} \
-     --env PROVISIONING_IPV6=$PROVISIONING_IPV6 -v "$IRONIC_DATA_DIR":/shared \
+     --env PROVISIONING_IPV6="$PROVISIONING_IPV6" -v "$IRONIC_DATA_DIR":/shared \
      --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
 
 sudo "${CONTAINER_RUNTIME}" wait ipa-downloader
