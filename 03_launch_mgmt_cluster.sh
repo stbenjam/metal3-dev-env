@@ -30,8 +30,8 @@ CAPBMPATH="${M3PATH}/cluster-api-provider-baremetal"
 CAPIPATH="${M3PATH}/cluster-api"
 CABPKPATH="${M3PATH}/cluster-api-bootstrap-provider-kubeadm"
 
-BMOREPO="${BMOREPO:-https://github.com/metal3-io/baremetal-operator.git}"
-BMOBRANCH="${BMOBRANCH:-master}"
+BMOREPO="${BMOREPO:-https://github.com/stbenjam/baremetal-operator.git}"
+BMOBRANCH="${BMOBRANCH:-config-map}"
 CAPBMREPO="${CAPBMREPO:-https://github.com/metal3-io/cluster-api-provider-baremetal.git}"
 CAPBMBRANCH="${CAPBMBRANCH:-master}"
 
@@ -104,11 +104,20 @@ function launch_baremetal_operator() {
     if [ "${BMO_RUN_LOCAL}" = true ]; then
       touch bmo.out.log
       touch bmo.err.log
-      make deploy
+      if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+        make deploy BMO_CONFIGMAP="$SCRIPTDIR/bmo_configmap_ipv6.yaml"
+      else
+        make deploy
+      fi
+
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
       nohup make run >> bmo.out.log 2>>bmo.err.log &
     else
-      make deploy
+      if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
+        make deploy BMO_CONFIGMAP="$SCRIPTDIR/bmo_configmap_ipv6.yaml"
+      else
+        make deploy
+      fi
     fi
     popd
 }
