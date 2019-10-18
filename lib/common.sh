@@ -40,6 +40,13 @@ CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"podman"}
 PROVISIONING_IPV6=${PROVISIONING_IPV6:-false}
 IPV6_ADDR_PREFIX=${IPV6_ADDR_PREFIX:-"fd2e:6f44:5dd8:b856"}
 
+if [[ "${PROVISIONING_IPV6}" ]];
+then
+  PROVISIONING_IP="fd2e:6f44:5dd8:b856::1"
+else
+  PROVISIONING_IP="172.22.0.1"
+fi
+
 
 if [[ "${CONTAINER_RUNTIME}" == "podman" ]]; then
   export POD_NAME="--pod ironic-pod"

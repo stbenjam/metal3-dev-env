@@ -3,11 +3,12 @@ apiVersion: v1
 metadata:
   name: ironic-bmo-configmap
 data:
-  http_port: "6180"
-  interface: "eth2"
-  dhcp_range: "172.22.0.10,172.22.0.100" # FIXME?
-  deploy_kernel_url: "http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.kernel"
-  deploy_ramdisk_url: "http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.initramfs"
-  ironic_endpoint: "http://[fd2e:6f44:5dd8:b856::2]:6385/v1/"
-  ironic_inspector_endpoint: "http://[fd2e:6f44:5dd8:b856::2]:5050/v1/"
-  cacheurl: "http://[fd2e:6f44:5dd8:b856::1]/images"
+  PROVISIONING_IP: "fd2e:6f44:5dd8:b856::2"
+  PROVISIONING_INTERFACE: "eth2"
+  HTTP_PORT: "6180"
+  DHCP_RANGE: "172.22.0.10,172.22.0.100" # FIXME?
+  DEPLOY_KERNEL_URL: "http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.kernel"
+  DEPLOY_RAMDISK_URL: "http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.initramfs"
+  IRONIC_ENDPOINT: "http://[fd2e:6f44:5dd8:b856::2]:6385/v1/"
+  IRONIC_INSPECTOR_ENDPOINT: "http://[fd2e:6f44:5dd8:b856::2]:5050/v1/"
+  CACHEURL: "http://[fd2e:6f44:5dd8:b856::1]/images"
