@@ -11,15 +11,10 @@ if [ ! -f "$HOME/.ssh/id_rsa.pub" ]; then
     ssh-keygen -f ~/.ssh/id_rsa -P ""
 fi
 
-# Start image downloader and httpd containers
-sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name ipa-downloader ${POD_NAME} \
-     -v "$IRONIC_DATA_DIR":/shared "${IPA_DOWNLOADER_IMAGE}" /usr/local/bin/get-resource.sh
-
+# Start httpd container
 sudo "${CONTAINER_RUNTIME}" run -d --net host --privileged --name httpd ${POD_NAME} \
      --env PROVISIONING_IPV6="$PROVISIONING_IPV6" -v "$IRONIC_DATA_DIR":/shared \
      --entrypoint /bin/runhttpd "${IRONIC_IMAGE}"
-
-sudo "${CONTAINER_RUNTIME}" wait ipa-downloader
 
 # root needs a private key to talk to libvirt
 # See tripleo-quickstart-config/roles/virtbmc/tasks/configure-vbmc.yml
@@ -116,15 +111,15 @@ fi
 # Add firewall rules to ensure the IPA ramdisk can reach httpd, Ironic and the
 # Inspector API on the cluster, and ironic can reach the agent (9999)
 for port in 6180 5050 6385 9999; do
-    if ! sudo iptables -C FORWARD -i provisioning -p tcp -m tcp --dport $port \
-      -j ACCEPT > /dev/null 2>&1; then
-        sudo iptables -I FORWARD -i provisioning -p tcp -m tcp --dport $port \
-          -j ACCEPT
+    if ! sudo iptables -C FORWARD -i provisioning -o provisioning -p tcp \
+      -m tcp --dport $port -j ACCEPT > /dev/null 2>&1; then
+        sudo iptables -I FORWARD -i provisioning -o provisioning -p tcp -m tcp \
+          --dport $port -j ACCEPT
     fi
-    if ! sudo iptables -C FORWARD -i provisioning -p tcp -m tcp --sport $port \
-      -j ACCEPT > /dev/null 2>&1; then
-        sudo iptables -I FORWARD -i provisioning -p tcp -m tcp --sport $port \
-          -j ACCEPT
+    if ! sudo iptables -C FORWARD -i provisioning -o provisioning -p tcp \
+      -m tcp --sport $port -j ACCEPT > /dev/null 2>&1; then
+        sudo iptables -I FORWARD -i provisioning -o provisioning -p tcp -m tcp \
+          --sport $port -j ACCEPT
     fi
 done
 
@@ -139,9 +134,11 @@ if ! sudo iptables -C INPUT -i baremetal -p udp -m udp --dport 6230:6235 -j ACCE
 fi
 
 #Allow access to dhcp and tftp server for pxeboot
-for port in 67 68 69 ; do
-    if ! sudo iptables -C FORWARD -i provisioning -p udp --dport $port -j ACCEPT 2>/dev/null ; then
-        sudo iptables -I FORWARD -i provisioning -p udp --dport $port -j ACCEPT
+for port in 67 68 69 5353; do
+    if ! sudo iptables -C FORWARD -i provisioning -o provisioning -p udp \
+      --dport $port -j ACCEPT 2>/dev/null ; then
+        sudo iptables -I FORWARD -i provisioning -o provisioning -p udp \
+          --dport $port -j ACCEPT
     fi
 done
 
