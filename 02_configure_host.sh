@@ -123,6 +123,11 @@ for port in 6180 5050 6385 9999; do
     fi
 done
 
+# Add firewall rules to allow access to registry
+if ! sudo iptables -C INPUT -i provisioning -p tcp -m tcp --dport 5000 -j ACCEPT > /dev/null 2>&1; then
+    sudo iptables -I INPUT -i provisioning -p tcp -m tcp --dport 5000 -j ACCEPT
+fi
+
 # Add firewall rules to ensure the IPA ramdisk can reach httpd on the host
 if ! sudo iptables -C INPUT -i provisioning -p tcp -m tcp --dport 80 -j ACCEPT > /dev/null 2>&1; then
     sudo iptables -I INPUT -i provisioning -p tcp -m tcp --dport 80 -j ACCEPT
@@ -160,6 +165,13 @@ if [[ "$MANAGE_BR_BRIDGE" == "y" && $OS == "centos" ]] ; then
   else
     sudo systemctl restart NetworkManager
   fi
+fi
+
+# Needed if we're going to use any locally built images
+reg_state=$(sudo "$CONTAINER_RUNTIME" inspect registry --format  "{{.State.Status}}" || echo "error")
+if [[ "$reg_state" != "running" ]]; then
+ sudo "${CONTAINER_RUNTIME}" rm registry -f || true
+ sudo "${CONTAINER_RUNTIME}" run -d -p 5000:5000 --name registry "$DOCKER_REGISTRY_IMAGE"
 fi
 
 # Start vbmc and sushy containers

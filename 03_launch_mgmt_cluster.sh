@@ -98,7 +98,38 @@ function clone_repos() {
     popd
 }
 
+function build_local_images() {
+  pushd $1
+
+  for IMAGE_VAR in $(env | grep "_LOCAL_IMAGE=" | grep -o "^[^=]*") ; do
+      IMAGE=${!IMAGE_VAR}
+
+      # Is it a git repo?
+      if [[ "$IMAGE" =~ "://" ]] ; then
+          REPOPATH=~/${IMAGE##*/}
+          # Clone to ~ if not there already
+          [ -e "$REPOPATH" ] || git clone $IMAGE $REPOPATH
+          cd $REPOPATH
+          export $IMAGE_VAR=${IMAGE##*/}:latest
+          export $IMAGE_VAR=192.168.111.1:5000/localimages/${!IMAGE_VAR}
+          sudo "${CONTAINER_RUNTIME}" build -t ${!IMAGE_VAR} .
+          cd -
+          sudo "${CONTAINER_RUNTIME}" push --tls-verify=false ${!IMAGE_VAR} ${!IMAGE_VAR}
+      fi
+
+      IMAGE_NAME=$(echo ${IMAGE_VAR/_LOCAL_IMAGE} | tr '[:upper:]_' '[:lower:]-')
+
+      # Override the image
+      kustomize edit set image quay.io/metal3-io/${IMAGE_NAME}=${!IMAGE_VAR}
+  done
+
+  popd
+}
+
 function launch_baremetal_operator() {
+    KUSTOMIZE_PATH=${KUSTOMIZE_OVERLAY:-"$BMOPATH/deploy"}
+    build_local_images "$KUSTOMIZE_PATH"
+
     if [ "${BMO_RUN_LOCAL}" = true ]; then
       touch bmo.out.log
       touch bmo.err.log
@@ -113,11 +144,7 @@ function launch_baremetal_operator() {
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
       nohup make run >> bmo.out.log 2>>bmo.err.log &
     else
-      if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
-        make deploy BMO_CONFIGMAP="$SCRIPTDIR/bmo_configmap_ipv6.yaml"
-      else
-        make deploy
-      fi
+      kustomize build $KUSTOMIZE_PATH | kubectl apply -f -
     fi
 }
 
@@ -186,6 +213,7 @@ if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
 else
   sudo su -l -c 'minikube ssh sudo ip addr add 172.22.0.2/24 dev eth2' "${USER}"
 fi
+
 launch_baremetal_operator
 apply_bm_hosts
 launch_cluster_api_provider_baremetal
