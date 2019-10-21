@@ -1,0 +1,12 @@
+bases:
+  - ../../go/src/github.com/metal3-io/baremetal-operator/deploy
+configMapGenerator:
+  - name: ironic-bmo-configmap
+    behavior: replace
+    literals:
+      - PROVISIONING_IP=fd2e:6f44:5dd8:b856::2
+      - DEPLOY_KERNEL_URL=http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.kernel
+      - DEPLOY_RAMDISK_URL=http://[fd2e:6f44:5dd8:b856::2]:6180/images/ironic-python-agent.initramfs
+      - IRONIC_ENDPOINT=http://[fd2e:6f44:5dd8:b856::2]:6385/v1/
+      - IRONIC_INSPECTOR_ENDPOINT=http://[fd2e:6f44:5dd8:b856::2]:5050/v1/
+      - CACHEURL=http://[fd2e:6f44:5dd8:b856::1]/images
