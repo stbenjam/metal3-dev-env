@@ -98,16 +98,16 @@ function clone_repos() {
     popd
 }
 
-
 function launch_baremetal_operator() {
-    pushd "${BMOPATH}"
     if [ "${BMO_RUN_LOCAL}" = true ]; then
       touch bmo.out.log
       touch bmo.err.log
       if [[ "${PROVISIONING_IPV6}" == "true" ]]; then
-        make deploy BMO_CONFIGMAP="$SCRIPTDIR/bmo_configmap_ipv6.yaml"
+        kustomize build ipv6 | kubectl apply -f-
       else
+        pushd "${BMOPATH}"
         make deploy
+        popd
       fi
 
       kubectl scale deployment metal3-baremetal-operator -n metal3 --replicas=0
@@ -119,7 +119,6 @@ function launch_baremetal_operator() {
         make deploy
       fi
     fi
-    popd
 }
 
 
